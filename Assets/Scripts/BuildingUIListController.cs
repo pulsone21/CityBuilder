@@ -13,8 +13,7 @@ public class BuildingUIListController : MonoBehaviour
 
     private void Start()
     {
-        placeableObjects = gridManager.GetPlaceableObjects();
-        foreach (PlaceableObject pO in placeableObjects)
+        foreach (PlaceableObject pO in gridManager.GetPlaceableObjects())
         {
             InstantiateButton(pO);
         }
@@ -28,7 +27,5 @@ public class BuildingUIListController : MonoBehaviour
         newButton.transform.GetChild(0).GetChild(0).GetComponent<Image>().sprite = pO.itemPicture;
         Button btnEl = newButton.GetComponent<Button>();
         btnEl.onClick.AddListener(() => gridManager.SetCurrentPlaceableObject(pO));
-
-
     }
 }

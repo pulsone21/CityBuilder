@@ -22,29 +22,54 @@ public class GridManager : MonoBehaviour
             instance = this;
         }
 
+        LoadPlacableObjects();
         grid = new GridXZ<GridObjectXZ>(width, height, cellSize, this.transform.position, this.transform, (GridXZ<GridObjectXZ> g, int x, int z) => new GridObjectXZ(x, z, g));
 
     }
 
     void Update()
     {
-
         if (!EventSystem.current.IsPointerOverGameObject())
         {
             if (Input.GetMouseButtonDown(0))
             {
                 grid.GetGridPositionFromWorldPos(GetMouseWorldPosition(Input.mousePosition), out int x, out int z);
                 if (grid.ValidateCoords(x, z))
-                    if (grid.gridFields[x, z].CanBuild())
+                {
+                    List<Coordinate> coordinates = currentPlacableObject.GetNeededCoordinates(x, z);
+                    bool canBuild = true;
+                    foreach (Coordinate coord in coordinates)
                     {
-                        grid.gridFields[x, z].SetPlaceableObject(currentPlacableObject);
-                        Instantiate(currentPlacableObject.prefab, grid.GetWorldPositionFromGridCoords(x, z) + currentPlacableObject.GetDirectionOffset(), Quaternion.Euler(0, currentPlacableObject.GetDirectionRotation(), 0));
+                        if (grid.ValidateCoords(coord.x, coord.y))
+                        {
+                            if (!grid.gridFields[coord.x, coord.y].CanBuild())
+                            {
+                                canBuild = false;
+                                break;
+                            }
+                        }
+                        else
+                        {
+                            canBuild = false;
+                            break;
+                        }
+                    }
+
+                    if (canBuild)
+                    {
+                        GameObject gO = Instantiate(currentPlacableObject.prefab, grid.GetWorldPositionFromGridCoords(x, z) + currentPlacableObject.GetDirectionOffsetXZ(), Quaternion.Euler(0, currentPlacableObject.GetDirectionRotation(), 0));
+                        gO.AddComponent<PlaceableObjectHandler>().myCoordinates = coordinates;
+                        foreach (Coordinate coord in coordinates)
+                        {
+                            grid.gridFields[coord.x, coord.y].SetPlaceableObject(currentPlacableObject, gO);
+                        }
                     }
                     else
                     {
                         Debug.LogError("GridField already has an Object built on.");
                         //TODO Implement proper error display workflow
                     }
+                }
             }
 
 
@@ -55,7 +80,13 @@ public class GridManager : MonoBehaviour
                 {
                     if (!grid.gridFields[x, z].CanBuild())
                     { // if CanBuild is false, means there is a object placed on this grid tile
-                        grid.gridFields[x, z].ClearPlaceableObject();
+                        GameObject gO = grid.gridFields[x, z].GetGameObject();
+                        List<Coordinate> coords = gO.GetComponent<PlaceableObjectHandler>().myCoordinates;
+                        foreach (Coordinate coord in coords)
+                        {
+                            grid.gridFields[coord.x, coord.y].ClearPlaceableObject();
+                        }
+                        DestroyImmediate(gO);
                     }
                 }
             }
@@ -64,7 +95,6 @@ public class GridManager : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.R))
         {
             currentPlacableObject.ToggleNextDirection();
-
         }
     }
 
@@ -86,5 +116,14 @@ public class GridManager : MonoBehaviour
     public void SetCurrentPlaceableObject(PlaceableObject pO)
     {
         currentPlacableObject = pO;
+    }
+
+    private void LoadPlacableObjects()
+    {
+        PlaceableObject[] pOs = Resources.LoadAll<PlaceableObject>("ScriptableObjects/PlaceableObjects");
+        foreach (PlaceableObject pO in pOs)
+        {
+            placeableObjects.Add(pO);
+        }
     }
 }

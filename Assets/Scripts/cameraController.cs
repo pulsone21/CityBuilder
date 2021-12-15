@@ -5,7 +5,7 @@ using UnityEngine;
 public class cameraController : MonoBehaviour
 {
     private Transform myTransform;
-    public float cameraSpeed;
+    public float cameraSpeed = 15f;
 
 
     void Awake()

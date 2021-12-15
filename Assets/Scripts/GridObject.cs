@@ -1,25 +1,34 @@
+using UnityEngine;
 public class GridObject
 {
-    public PlaceableObject PlaceableObject;
+    protected PlaceableObject placeableObject;
+    protected GameObject placedGameobject;
 
-    public virtual void SetPlaceableObject(PlaceableObject PlaceableObject)
+    public virtual void SetPlaceableObject(PlaceableObject placeableObject, GameObject gameObject)
     {
-        this.PlaceableObject = PlaceableObject;
+        this.placeableObject = placeableObject;
+        this.placedGameobject = gameObject;
     }
 
     public virtual void ClearPlaceableObject()
     {
-        this.PlaceableObject = null;
+        this.placeableObject = null;
+        this.placedGameobject = null;
     }
 
     public PlaceableObject GetPlaceableObject()
     {
-        return this.PlaceableObject;
+        return this.placeableObject;
+    }
+
+    public GameObject GetGameObject()
+    {
+        return this.placedGameobject;
     }
 
     public bool CanBuild()
     {
-        return PlaceableObject == null;
+        return placeableObject == null;
     }
 
 
@@ -40,21 +49,19 @@ public class GridObjectXZ : GridObject
 
     public override void ClearPlaceableObject()
     {
-        //TODO find a proper way to delete the GameObject
-        this.PlaceableObject = null;
+        base.ClearPlaceableObject();
         grid.UpdateDebugText(x, z);
     }
 
-    public override void SetPlaceableObject(PlaceableObject PlaceableObject)
+    public override void SetPlaceableObject(PlaceableObject PlaceableObject, GameObject gameObject)
     {
-        this.PlaceableObject = PlaceableObject;
+        base.SetPlaceableObject(PlaceableObject, gameObject);
         grid.UpdateDebugText(x, z);
     }
-
 
     public override string ToString()
     {
-        return x + "," + z + "\n" + PlaceableObject?.name;
+        return x + "," + z + "\n" + placeableObject?.name;
     }
 }
 
@@ -72,20 +79,18 @@ public class GridObjectXY : GridObject
 
     public override void ClearPlaceableObject()
     {
-        // this.PlaceableObject.
-        //TODO find a proper way to delete the GameObject
-        this.PlaceableObject = null;
+        base.ClearPlaceableObject();
         grid.UpdateDebugText(x, y);
     }
 
-    public override void SetPlaceableObject(PlaceableObject PlaceableObject)
+    public override void SetPlaceableObject(PlaceableObject PlaceableObject, GameObject gameObject)
     {
-        this.PlaceableObject = PlaceableObject;
+        base.SetPlaceableObject(PlaceableObject, gameObject);
         grid.UpdateDebugText(x, y);
     }
 
     public override string ToString()
     {
-        return x + "," + y + "\n" + PlaceableObject?.name;
+        return x + "," + y + "\n" + placeableObject?.name;
     }
 }

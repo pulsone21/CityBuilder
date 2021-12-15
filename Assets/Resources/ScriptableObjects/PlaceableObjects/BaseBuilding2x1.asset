@@ -9,12 +9,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 33cc5d14ab646408b8e09f8cdc8f7e94, type: 3}
-  m_Name: BaseBuilding1x1
+  m_Script: {fileID: 11500000, guid: 8610d3e512f6ab54facbd1dabfcc9016, type: 3}
+  m_Name: BaseBuilding2x1
   m_EditorClassIdentifier: 
   dir: 0
-  name: Basebuilding1x1
-  prefab: {fileID: 6948184240272570023, guid: 18c6572c29e1e8843af566b3b8aac18a, type: 3}
-  width: 1
+  name: Building 2x1
+  prefab: {fileID: 6388956550396941886, guid: 4f87644816aa3da46a9046a61dd61c64, type: 3}
+  width: 2
   height: 1
-  itemPicture: {fileID: 21300000, guid: 943c2b7aff6d4a544bc91010e2e03aa9, type: 3}
+  itemPicture: {fileID: 21300000, guid: c74640a2226cccf489a3727b65902b35, type: 3}

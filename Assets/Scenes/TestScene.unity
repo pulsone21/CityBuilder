@@ -310,7 +310,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1024733245}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6286d3d4513a84e939401c323f8b6826, type: 3}
+  m_Script: {fileID: 11500000, guid: 734d64398156d5740b6887f3190c90c6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   cameraSpeed: 15
@@ -538,16 +538,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 1438971363}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 20676efa0b590458e9c817fc78f1ab6f, type: 3}
+  m_Script: {fileID: 11500000, guid: 0539401f8587f2b4bbd1fbc667d61258, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   instance: {fileID: 0}
   width: 10
   height: 10
   cellSize: 10
-  placeableObjects:
-  - {fileID: 11400000, guid: c078761d4704fdb4f9ed569468ac5fea, type: 2}
-  - {fileID: 11400000, guid: 60c7600669bfae549b1aa0b1933c7953, type: 2}
+  placeableObjects: []
 --- !u!4 &1438971365
 Transform:
   m_ObjectHideFlags: 0
@@ -598,8 +596,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -312, y: -881.2081}
-  m_SizeDelta: {x: -675.6099, y: -1802.5996}
+  m_AnchoredPosition: {x: -245.32532, y: -274.31982}
+  m_SizeDelta: {x: -542.2606, y: -588.823}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1841030257
 MonoBehaviour:
@@ -624,7 +622,7 @@ MonoBehaviour:
   m_ChildForceExpandHeight: 1
   m_ChildControlWidth: 0
   m_ChildControlHeight: 1
-  m_ChildScaleWidth: 1
+  m_ChildScaleWidth: 0
   m_ChildScaleHeight: 1
   m_ReverseArrangement: 0
 --- !u!114 &1841030258
@@ -674,9 +672,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 1841030255}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ba08ed81a65f89148916473fc00aedb7, type: 3}
+  m_Script: {fileID: 11500000, guid: 51e93ffd7d9c9004aad44c5cc0f096ef, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   gridManager: {fileID: 1438971364}
-  ButtonPrefab: {fileID: 3885658710406095691, guid: 2c0b7c8eaa5994c42bb5878ccb679188, type: 3}
+  ButtonPrefab: {fileID: 3885658710406095691, guid: 82c4802610c9a09438c7599e88540bd4, type: 3}
   placeableObjects: []
