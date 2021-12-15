@@ -6,10 +6,16 @@ using TMPro;
 
 public class BuildingUIListController : MonoBehaviour
 {
-    [SerializeField] private GridManager gridManager;
+    private GridManager gridManager;
+    private BuildingHandler buildingHandler;
     [SerializeField] private GameObject ButtonPrefab;
     [SerializeField] private List<PlaceableObject> placeableObjects;
 
+    private void Awake()
+    {
+        buildingHandler = BuildingHandler._instance;
+        gridManager = GridManager._instance;
+    }
 
     private void Start()
     {
@@ -26,6 +32,6 @@ public class BuildingUIListController : MonoBehaviour
         newButton.GetComponentInChildren<TextMeshProUGUI>().text = pO.name;
         newButton.transform.GetChild(0).GetChild(0).GetComponent<Image>().sprite = pO.itemPicture;
         Button btnEl = newButton.GetComponent<Button>();
-        btnEl.onClick.AddListener(() => gridManager.SetCurrentPlaceableObject(pO));
+        btnEl.onClick.AddListener(() => buildingHandler.SetCurrentPlaceableObject(pO));
     }
 }

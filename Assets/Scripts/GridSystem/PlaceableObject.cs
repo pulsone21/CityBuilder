@@ -5,8 +5,6 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "ScriptableObjects/PlaceableObject")]
 public class PlaceableObject : ScriptableObject
 {
-
-    public Direction dir = Direction.up;
     public new string name;
     public GameObject prefab;
     public int width, height;
@@ -18,7 +16,7 @@ public class PlaceableObject : ScriptableObject
     /// <param name="x"></param>
     /// <param name="y"></param>
     /// <returns></returns>
-    public List<Coordinate> GetNeededCoordinates(int x, int y)
+    public List<Coordinate> GetNeededCoordinates(int x, int y, Direction dir)
     {
         List<Coordinate> coordinates = new List<Coordinate>();
 
@@ -26,10 +24,10 @@ public class PlaceableObject : ScriptableObject
         {
             for (int h = 0; h < height; h++)
             {
-                switch (this.dir)
+                switch (dir)
                 {
                     case Direction.down:
-                        coordinates.Add(new Coordinate(x - h, y - w));
+                        coordinates.Add(new Coordinate(x - w, y - h));
                         break;
                     case Direction.left:
                         coordinates.Add(new Coordinate(x - h, y + w));
@@ -47,9 +45,9 @@ public class PlaceableObject : ScriptableObject
         return coordinates;
     }
 
-    public int GetDirectionRotation()
+    public int GetDirectionRotation(Direction dir)
     {
-        switch (this.dir)
+        switch (dir)
         {
             case Direction.down: return 180;
             case Direction.left: return 270;
@@ -58,9 +56,9 @@ public class PlaceableObject : ScriptableObject
         }
     }
 
-    public Vector3 GetDirectionOffsetXZ()
+    public Vector3 GetDirectionOffsetXZ(Direction dir)
     {
-        switch (this.dir)
+        switch (dir)
         {
             case Direction.down: return new Vector3(10, 0, 10);
             case Direction.left: return new Vector3(10, 0, 0);
@@ -69,9 +67,9 @@ public class PlaceableObject : ScriptableObject
         }
     }
 
-    public Vector3 GetDirectionOffsetXY()
+    public Vector3 GetDirectionOffsetXY(Direction dir)
     {
-        switch (this.dir)
+        switch (dir)
         {
             case Direction.down: return new Vector3(10, 10, 0);
             case Direction.left: return new Vector3(10, 0, 0);
@@ -80,15 +78,6 @@ public class PlaceableObject : ScriptableObject
         }
     }
 
-    public void ToggleNextDirection()
-    {
-        switch (this.dir)
-        {
-            case Direction.up: dir = Direction.right; break;
-            case Direction.down: dir = Direction.left; break;
-            case Direction.left: dir = Direction.up; break;
-            case Direction.right: dir = Direction.down; break;
-        }
-    }
+
 
 }

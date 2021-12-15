@@ -30,8 +30,6 @@ public class GridObject
     {
         return placeableObject == null;
     }
-
-
 }
 
 

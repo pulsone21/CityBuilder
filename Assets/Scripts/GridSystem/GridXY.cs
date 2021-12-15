@@ -35,6 +35,16 @@ public class GridXY<TGridObject>
         ToogleDebug(true);
     }
 
+    public Vector3 GetMouseWorldPosition(Vector3 mousePos)
+    {
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        if (rayCastPlane.Raycast(ray, out float distance))
+        {
+            return ray.GetPoint(distance);
+        };
+        return Vector3.zero;
+    }
+
     public int GetHeight()
     {
         return height;
