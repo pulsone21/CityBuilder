@@ -115,7 +115,7 @@ public class GridXZ<TGridObject>
     /// <returns>True if Coordinates in ArrayBounds</returns>
     public bool ValidateCoords(int x, int z)
     {
-        return (x >= 0 && z >= 0 && x <= width && z <= height);
+        return (x >= 0 && z >= 0 && x < width && z < height);
     }
 
 

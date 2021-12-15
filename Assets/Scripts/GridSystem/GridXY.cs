@@ -113,7 +113,7 @@ public class GridXY<TGridObject>
     /// <returns>True if Coordinates in ArrayBounds</returns>
     public bool ValidateCoords(int x, int y)
     {
-        return (x >= 0 && y >= 0 && x <= width && y <= height);
+        return (x >= 0 && y >= 0 && x < width && y < height);
     }
 
 
