@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2eb6fe34aa2035f4fb09b3a0128503ef, type: 3}
+  m_Name: BasicRoad
+  m_EditorClassIdentifier: 
+  name: BasicRoad
+  prefab: {fileID: 1286891637252591629, guid: 1a1fba77907683c4081b23d364648c59, type: 3}
+  width: 1
+  height: 1
+  itemPicture: {fileID: 21300000, guid: 37373089e2d876941a18549950aafcf4, type: 3}
+  isDragable: 1

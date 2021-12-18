@@ -85,6 +85,7 @@ public class PlaceableObjectHandler : MonoBehaviour
     public void OnBuild()
     {
         //TODO Implement Audio and Build Animation
+        UnsetTransparency();
     }
 
     private void OnDestroy()

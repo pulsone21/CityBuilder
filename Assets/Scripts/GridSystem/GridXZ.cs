@@ -69,7 +69,6 @@ public class GridXZ<TGridObject>
         if (ValidateCoords(x, z)) debugTextMeshes[x, z].text = gridFields[x, z].ToString();
     }
 
-
     /// <summary>
     /// Returns a Vector 3 centered on the specified Grid Coordinates
     /// </summary>

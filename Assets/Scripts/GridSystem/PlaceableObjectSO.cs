@@ -79,7 +79,4 @@ public class PlaceableObjectSO : ScriptableObject
             default: return Vector3.zero; // should always be set to Up, so 0;
         }
     }
-
-
-
 }

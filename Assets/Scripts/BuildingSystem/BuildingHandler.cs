@@ -11,7 +11,11 @@ public class BuildingHandler : MonoBehaviour
     [SerializeField] private Direction currentDirection = Direction.up;
     [SerializeField] private GridManager gm;
     [SerializeField] private bool buildMode = false;
-    [SerializeField] private GameObject currentBluePrint;
+    private GameObject currentBluePrint;
+    [SerializeField] private List<GameObject> placedBluePrints = new List<GameObject>();
+    [SerializeField] private List<Coordinate> bluePrintOccupiedCoords = new List<Coordinate>();
+    [SerializeField] private bool inDrag = false;
+    [SerializeField] private Coordinate lastCoord;
 
     private void Awake()
     {
@@ -27,13 +31,12 @@ public class BuildingHandler : MonoBehaviour
 
     private void OnDisable()
     {
-        if (currentBluePrint) DestroyImmediate(currentBluePrint);
-        ToogleBuildMode(false);
+        DeselectActiveBuildingSelection();
     }
+
 
     void Update()
     {
-
         if (Input.GetKeyDown(KeyCode.Escape)) this.enabled = false;
         if (Input.GetKeyDown(KeyCode.R)) ToggleNextDirection();
 
@@ -45,70 +48,96 @@ public class BuildingHandler : MonoBehaviour
             if (!buildMode) // STATE 1 
             {
                 if (Input.GetMouseButtonDown(1) && !OverUI) DestroyBuilding(coord);
-
             }
             else // STATE 2
             {
                 int yRotation = placeableObject.GetDirectionRotation(currentDirection);
                 Vector3 buildPos = worldPos + placeableObject.GetDirectionOffsetXZ(currentDirection);
                 List<Coordinate> coords = placeableObject.GetNeededCoordinates(coord.x, coord.y, currentDirection);
-                UpdateBluePrint(buildPos, yRotation, coords);
-                currentBluePrint.GetComponent<PlaceableObjectHandler>().ToogleErrorVisual(!CheckBuildPosition(coord.x, coord.y));
-
+                UpdateBluePrint(buildPos, yRotation, coords, currentBluePrint);
                 if (Input.GetMouseButtonDown(1)) DeselectActiveBuildingSelection();
                 if (!OverUI)
                 {
-                    if (Input.GetMouseButtonDown(0) && Input.GetKey(KeyCode.LeftShift))
+                    if (Input.GetMouseButtonUp(0) && Input.GetKey(KeyCode.LeftShift) && !inDrag)
                     {
-                        BuildSelectedBuilding(false, worldPos, yRotation, coords);
+                        BuildSelectedBuilding(coords, currentBluePrint);
+                        currentBluePrint = InstantiateBluePrint(buildPos, placeableObject.GetDirectionRotation(currentDirection));
                     }
-                    else if (Input.GetMouseButtonDown(0))
+                    else if (Input.GetMouseButtonUp(0) && !inDrag)
                     {
-                        BuildSelectedBuilding(true, worldPos, yRotation, coords);
+                        BuildSelectedBuilding(coords, currentBluePrint);
+                        ToogleBuildMode(false);
+                    }
+                    else if (Input.GetMouseButtonUp(0) && inDrag)
+                    {
+                        foreach (GameObject gO in placedBluePrints)
+                        {
+                            BuildSelectedBuilding(gO.GetComponent<PlaceableObjectHandler>().myCoordinates, gO);
+                        }
+                        inDrag = false;
+                        lastCoord = null;
+                        placedBluePrints.Clear();
                     }
                     else if (Input.GetMouseButton(0) && placeableObject.isDragable)
                     {
-                        HandleDragBuild();
+                        if (inDrag)
+                        {
+                            if (!lastCoord.CheckForSameCoordinate(coord))
+                            {
+                                HandleDragBuild(buildPos, coord, coords);
+                                lastCoord = coord;
+                            }
+                        }
+                        else
+                        {
+                            inDrag = true;
+                            lastCoord = coord;
+                            Debug.Log(coord.ToString());
+                            HandleDragBuild(buildPos, coord, coords);
+                        }
                     }
                 }
             }
         }
-        // Debug.Log(worldPos);
     }
 
-    private void HandleDragBuild()
+    private void HandleDragBuild(Vector3 currentBuildPos, Coordinate currentCoord, List<Coordinate> coordinates)
     {
+        //TODO Implement somekind of System to determin in wich direction we are going; 
 
+        Debug.Log(lastCoord.GetRelativDirectionToCoord(currentCoord).ToString());
+
+        if (CheckBuildPosition(currentBuildPos) && CheckNotAlreadyPlacedOnCoord(currentCoord))
+        {
+            placedBluePrints.Add(PreBuildGameObject(currentBluePrint, coordinates));
+            bluePrintOccupiedCoords.Add(currentCoord);
+            currentBluePrint = InstantiateBluePrint(currentBuildPos, placeableObject.GetDirectionRotation(currentDirection));
+        }
     }
 
-    private void BuildSelectedBuilding(bool multiBuild, Vector3 buildPosition, int directionRotation, List<Coordinate> coordinates)
+    private void BuildSelectedBuilding(List<Coordinate> coordinates, GameObject currentBluePrint)
     {
         if (CheckBuildPosition(coordinates))
         {
             PlaceableObjectHandler pOH = currentBluePrint.GetComponent<PlaceableObjectHandler>();
             pOH.myCoordinates = coordinates;
-            pOH.UnsetTransparency();
-            foreach (Coordinate coord in coordinates)
+            foreach (Coordinate coord in pOH.myCoordinates)
             {
                 gm.grid.gridFields[coord.x, coord.y].SetPlaceableObject(placeableObject, currentBluePrint);
             }
-
-            if (!multiBuild)
-            {
-                pOH.OnBuild();
-                ToogleBuildMode(false);
-            }
-            else
-            {
-                pOH.OnBuild();
-                currentBluePrint = InstantiateBluePrint(buildPosition, placeableObject.GetDirectionRotation(currentDirection));
-            }
+            pOH.OnBuild();
         }
         else
         {
             Debug.LogError("GridField already has an Object built on.");
             //TODO Implement proper error display workflow
         }
+    }
+
+    private GameObject PreBuildGameObject(GameObject currentBluePrint, List<Coordinate> coordinates)
+    {
+        currentBluePrint.GetComponent<PlaceableObjectHandler>().myCoordinates = coordinates;
+        return currentBluePrint;
     }
 
     private void DestroyBuilding(Coordinate inCoord)
@@ -127,6 +156,11 @@ public class BuildingHandler : MonoBehaviour
 
     private void DeselectActiveBuildingSelection()
     {
+        foreach (GameObject gO in placedBluePrints)
+        {
+            DestroyImmediate(gO);
+        }
+        placedBluePrints.Clear();
         DestroyImmediate(currentBluePrint);
         ToogleBuildMode(false);
     }
@@ -144,7 +178,7 @@ public class BuildingHandler : MonoBehaviour
 
     public void SetCurrentPlaceableObject(PlaceableObjectSO pO)
     {
-        if (currentBluePrint) DeselectActiveBuildingSelection();
+        if (placedBluePrints.Count > 0) DeselectActiveBuildingSelection();
         this.enabled = true;
         placeableObject = pO;
         ToogleBuildMode(true);
@@ -160,12 +194,13 @@ public class BuildingHandler : MonoBehaviour
         return Instantiate(placeableObject.prefab, worldPos, Quaternion.Euler(0, directionRotation, 0));
     }
 
-    private void UpdateBluePrint(Vector3 buildPostion, int directionRotation, List<Coordinate> coordinates)
+    private void UpdateBluePrint(Vector3 buildPostion, int directionRotation, List<Coordinate> coordinates, GameObject currentBluePrint)
     {
         currentBluePrint.transform.localPosition = buildPostion;
         currentBluePrint.transform.localRotation = Quaternion.Euler(0, directionRotation, 0);
-        currentBluePrint.GetComponent<PlaceableObjectHandler>().myCoordinates = coordinates;
-        SetErrorVisual(CheckBuildPosition(coordinates));
+        PlaceableObjectHandler pOH = currentBluePrint.GetComponent<PlaceableObjectHandler>();
+        pOH.myCoordinates = coordinates;
+        pOH.ToogleErrorVisual(!CheckBuildPosition(coordinates));
     }
 
     private void ToogleBuildMode(bool state)
@@ -174,7 +209,7 @@ public class BuildingHandler : MonoBehaviour
         currentDirection = Direction.up;
         if (!buildMode)
         {
-            currentBluePrint = null;
+            placedBluePrints.Clear();
             placeableObject = null;
             //TODO implement CallBack "OnBuildModeDeactive"
         }
@@ -185,14 +220,30 @@ public class BuildingHandler : MonoBehaviour
         }
     }
 
-    private void SetErrorVisual(bool error)
+    private bool CheckNotAlreadyPlacedOnCoord(Coordinate coordinate)
     {
-        currentBluePrint.GetComponent<PlaceableObjectHandler>().ToogleErrorVisual(error);
+        bool canBuild = true;
+        foreach (Coordinate coord in bluePrintOccupiedCoords)
+        {
+            if (coord.CheckForSameCoordinate(coordinate))
+            {
+                canBuild = false;
+                break;
+            }
+        }
+        return canBuild;
     }
 
     private bool CheckBuildPosition(int x, int y)
     {
         List<Coordinate> coordinates = placeableObject.GetNeededCoordinates(x, y, currentDirection);
+        return CheckBuildPosition(coordinates);
+    }
+
+    private bool CheckBuildPosition(Vector3 buildPos)
+    {
+        Coordinate coord = gm.grid.GetGridCoordinateFromWorldPos(buildPos);
+        List<Coordinate> coordinates = placeableObject.GetNeededCoordinates(coord.x, coord.y, currentDirection);
         return CheckBuildPosition(coordinates);
     }
 

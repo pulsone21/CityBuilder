@@ -496,7 +496,7 @@ MonoBehaviour:
   currentDirection: 0
   gm: {fileID: 1438971364}
   buildMode: 0
-  currentBluePrint: {fileID: 0}
+  currentBluePrints: []
 --- !u!4 &1065876187
 Transform:
   m_ObjectHideFlags: 0
