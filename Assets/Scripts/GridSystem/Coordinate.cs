@@ -23,6 +23,7 @@ public class Coordinate
 
     public Direction GetRelativDirectionToCoord(Coordinate coord)
     {
+        //TODO Figure out how correctly get the direction of the mouse movement.
         Coordinate computedCoordinate = ComputeCoord(coord);
         Debug.Log(computedCoordinate.ToString());
         if (computedCoordinate.x == 1) return Direction.right;
