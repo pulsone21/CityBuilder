@@ -1,10 +1,10 @@
 using UnityEngine;
 public class GridObject
 {
-    protected PlaceableObject placeableObject;
+    protected PlaceableObjectSO placeableObject;
     protected GameObject placedGameobject;
 
-    public virtual void SetPlaceableObject(PlaceableObject placeableObject, GameObject gameObject)
+    public virtual void SetPlaceableObject(PlaceableObjectSO placeableObject, GameObject gameObject)
     {
         this.placeableObject = placeableObject;
         this.placedGameobject = gameObject;
@@ -16,7 +16,7 @@ public class GridObject
         this.placedGameobject = null;
     }
 
-    public PlaceableObject GetPlaceableObject()
+    public PlaceableObjectSO GetPlaceableObject()
     {
         return this.placeableObject;
     }
@@ -51,7 +51,7 @@ public class GridObjectXZ : GridObject
         grid.UpdateDebugText(x, z);
     }
 
-    public override void SetPlaceableObject(PlaceableObject PlaceableObject, GameObject gameObject)
+    public override void SetPlaceableObject(PlaceableObjectSO PlaceableObject, GameObject gameObject)
     {
         base.SetPlaceableObject(PlaceableObject, gameObject);
         grid.UpdateDebugText(x, z);
@@ -81,7 +81,7 @@ public class GridObjectXY : GridObject
         grid.UpdateDebugText(x, y);
     }
 
-    public override void SetPlaceableObject(PlaceableObject PlaceableObject, GameObject gameObject)
+    public override void SetPlaceableObject(PlaceableObjectSO PlaceableObject, GameObject gameObject)
     {
         base.SetPlaceableObject(PlaceableObject, gameObject);
         grid.UpdateDebugText(x, y);

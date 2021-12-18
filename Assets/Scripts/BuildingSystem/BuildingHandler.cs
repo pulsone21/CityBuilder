@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -6,10 +7,10 @@ using UnityEngine.EventSystems;
 public class BuildingHandler : MonoBehaviour
 {
     public static BuildingHandler _instance;
-    [SerializeField] private PlaceableObject placeableObject;
+    [SerializeField] private PlaceableObjectSO placeableObject;
     [SerializeField] private Direction currentDirection = Direction.up;
     [SerializeField] private GridManager gm;
-    [SerializeField] private bool toogleBuildMode = false;
+    [SerializeField] private bool buildMode = false;
     [SerializeField] private GameObject currentBluePrint;
 
     private void Awake()
@@ -32,93 +33,102 @@ public class BuildingHandler : MonoBehaviour
 
     void Update()
     {
-        if (placeableObject != null)
-        {
-            if (currentBluePrint == null)
-            {
-                currentBluePrint = InstantiateBluePrint();
-                EvalPosition(Input.mousePosition);
-            }
-            else
-            {
-                UpdateBluePrint();
-                EvalPosition(Input.mousePosition);
-            }
-            if (Input.GetKeyDown(KeyCode.R)) ToggleNextDirection();
-        }
-
-        if (!EventSystem.current.IsPointerOverGameObject())
-        {
-            if (currentBluePrint != null)
-            {
-                if (Input.GetMouseButtonDown(0) && Input.GetKey(KeyCode.LeftShift))
-                {
-                    HandleLeftClick(false);
-                }
-                else if (Input.GetMouseButtonDown(0))
-                {
-                    HandleLeftClick(true);
-                }
-            }
-            if (Input.GetMouseButtonDown(1) && !toogleBuildMode) HandleRightClick();
-            //TODO Implement some kind of Drag and Drop functionallity for Roads, Rails etc.
-        }
 
         if (Input.GetKeyDown(KeyCode.Escape)) this.enabled = false;
+        if (Input.GetKeyDown(KeyCode.R)) ToggleNextDirection();
+
+        Coordinate coord = gm.grid.GetGridCoordinateFromWorldPos(gm.grid.GetMouseWorldPosition(Input.mousePosition));
+        if (coord != null)
+        {
+            bool OverUI = EventSystem.current.IsPointerOverGameObject();
+            Vector3 worldPos = gm.grid.GetWorldPositionFromGridCoords(coord);
+            if (!buildMode) // STATE 1 
+            {
+                if (Input.GetMouseButtonDown(1) && !OverUI) DestroyBuilding(coord);
+
+            }
+            else // STATE 2
+            {
+                int yRotation = placeableObject.GetDirectionRotation(currentDirection);
+                Vector3 buildPos = worldPos + placeableObject.GetDirectionOffsetXZ(currentDirection);
+                List<Coordinate> coords = placeableObject.GetNeededCoordinates(coord.x, coord.y, currentDirection);
+                UpdateBluePrint(buildPos, yRotation, coords);
+                currentBluePrint.GetComponent<PlaceableObjectHandler>().ToogleErrorVisual(!CheckBuildPosition(coord.x, coord.y));
+
+                if (Input.GetMouseButtonDown(1)) DeselectActiveBuildingSelection();
+                if (!OverUI)
+                {
+                    if (Input.GetMouseButtonDown(0) && Input.GetKey(KeyCode.LeftShift))
+                    {
+                        BuildSelectedBuilding(false, worldPos, yRotation, coords);
+                    }
+                    else if (Input.GetMouseButtonDown(0))
+                    {
+                        BuildSelectedBuilding(true, worldPos, yRotation, coords);
+                    }
+                    else if (Input.GetMouseButton(0) && placeableObject.isDragable)
+                    {
+                        HandleDragBuild();
+                    }
+                }
+            }
+        }
+        // Debug.Log(worldPos);
     }
 
-    private void HandleLeftClick(bool unsetGO)
+    private void HandleDragBuild()
     {
-        gm.grid.GetGridPositionFromWorldPos(gm.grid.GetMouseWorldPosition(Input.mousePosition), out int x, out int z);
-        if (gm.grid.ValidateCoords(x, z))
-        {
-            List<Coordinate> coordinates = placeableObject.GetNeededCoordinates(x, z, currentDirection);
-            if (CheckBuildPosition(coordinates))
-            {
-                Vector3 worldPosition = gm.grid.GetWorldPositionFromGridCoords(x, z) + placeableObject.GetDirectionOffsetXZ(currentDirection);
-                currentBluePrint.transform.localPosition = worldPosition;
-                currentBluePrint.transform.localRotation = Quaternion.Euler(0, placeableObject.GetDirectionRotation(currentDirection), 0);
-                PlaceableObjectHandler pOH = currentBluePrint.GetComponent<PlaceableObjectHandler>();
-                pOH.myCoordinates = coordinates;
-                pOH.UnsetTransparency();
-                foreach (Coordinate coord in coordinates)
-                {
-                    gm.grid.gridFields[coord.x, coord.y].SetPlaceableObject(placeableObject, currentBluePrint);
-                }
 
-                if (unsetGO) //? we dont want to multi build
-                {
-                    ToogleBuildMode(false);
-                }
-                else//? we want to multi build, just create a new Instance
-                {
-                    currentBluePrint = InstantiateBluePrint();
-                }
+    }
+
+    private void BuildSelectedBuilding(bool multiBuild, Vector3 buildPosition, int directionRotation, List<Coordinate> coordinates)
+    {
+        if (CheckBuildPosition(coordinates))
+        {
+            PlaceableObjectHandler pOH = currentBluePrint.GetComponent<PlaceableObjectHandler>();
+            pOH.myCoordinates = coordinates;
+            pOH.UnsetTransparency();
+            foreach (Coordinate coord in coordinates)
+            {
+                gm.grid.gridFields[coord.x, coord.y].SetPlaceableObject(placeableObject, currentBluePrint);
+            }
+
+            if (!multiBuild)
+            {
+                pOH.OnBuild();
+                ToogleBuildMode(false);
             }
             else
             {
-                Debug.LogError("GridField already has an Object built on.");
-                //TODO Implement proper error display workflow
+                pOH.OnBuild();
+                currentBluePrint = InstantiateBluePrint(buildPosition, placeableObject.GetDirectionRotation(currentDirection));
             }
+        }
+        else
+        {
+            Debug.LogError("GridField already has an Object built on.");
+            //TODO Implement proper error display workflow
         }
     }
 
-    private void HandleRightClick()
+    private void DestroyBuilding(Coordinate inCoord)
     {
-        gm.grid.GetGridPositionFromWorldPos(gm.grid.GetMouseWorldPosition(Input.mousePosition), out int x, out int z);
-        if (gm.grid.ValidateCoords(x, z))
-        {
-            if (!gm.grid.gridFields[x, z].CanBuild())
-            { // if CanBuild is false, means there is a object placed on this grid tile
-                GameObject gO = gm.grid.gridFields[x, z].GetGameObject();
-                List<Coordinate> coords = gO.GetComponent<PlaceableObjectHandler>().myCoordinates;
-                foreach (Coordinate coord in coords)
-                {
-                    gm.grid.gridFields[coord.x, coord.y].ClearPlaceableObject();
-                }
-                DestroyImmediate(gO);
+        if (!gm.grid.gridFields[inCoord.x, inCoord.y].CanBuild())
+        { // if CanBuild is false, means there is a object placed on this grid tile
+            GameObject gO = gm.grid.gridFields[inCoord.x, inCoord.y].GetGameObject();
+            List<Coordinate> coords = gO.GetComponent<PlaceableObjectHandler>().myCoordinates;
+            foreach (Coordinate coord in coords)
+            {
+                gm.grid.gridFields[coord.x, coord.y].ClearPlaceableObject();
             }
+            DestroyImmediate(gO);
         }
+    }
+
+    private void DeselectActiveBuildingSelection()
+    {
+        DestroyImmediate(currentBluePrint);
+        ToogleBuildMode(false);
     }
 
     private void ToggleNextDirection()
@@ -132,8 +142,9 @@ public class BuildingHandler : MonoBehaviour
         }
     }
 
-    public void SetCurrentPlaceableObject(PlaceableObject pO)
+    public void SetCurrentPlaceableObject(PlaceableObjectSO pO)
     {
+        if (currentBluePrint) DeselectActiveBuildingSelection();
         this.enabled = true;
         placeableObject = pO;
         ToogleBuildMode(true);
@@ -144,54 +155,39 @@ public class BuildingHandler : MonoBehaviour
         this.enabled = true;
     }
 
-    private GameObject InstantiateBluePrint()
+    private GameObject InstantiateBluePrint(Vector3 worldPos, int directionRotation)
     {
-        gm.grid.GetGridPositionFromWorldPos(gm.grid.GetMouseWorldPosition(Input.mousePosition), out int x, out int z);
-        Vector3 worldPosition = gm.grid.GetWorldPositionFromGridCoords(x, z) + placeableObject.GetDirectionOffsetXZ(currentDirection);
-        return Instantiate(placeableObject.prefab, worldPosition, Quaternion.Euler(0, placeableObject.GetDirectionRotation(currentDirection), 0));
+        return Instantiate(placeableObject.prefab, worldPos, Quaternion.Euler(0, directionRotation, 0));
     }
 
-    private void UpdateBluePrint()
+    private void UpdateBluePrint(Vector3 buildPostion, int directionRotation, List<Coordinate> coordinates)
     {
-        if (currentBluePrint != null)
-        {
-            gm.grid.GetGridPositionFromWorldPos(gm.grid.GetMouseWorldPosition(Input.mousePosition), out int x, out int z);
-            Vector3 worldPosition = gm.grid.GetWorldPositionFromGridCoords(x, z) + placeableObject.GetDirectionOffsetXZ(currentDirection);
-            currentBluePrint.transform.localPosition = worldPosition;
-            currentBluePrint.transform.localRotation = Quaternion.Euler(0, placeableObject.GetDirectionRotation(currentDirection), 0);
-        }
+        currentBluePrint.transform.localPosition = buildPostion;
+        currentBluePrint.transform.localRotation = Quaternion.Euler(0, directionRotation, 0);
+        currentBluePrint.GetComponent<PlaceableObjectHandler>().myCoordinates = coordinates;
+        SetErrorVisual(CheckBuildPosition(coordinates));
     }
 
     private void ToogleBuildMode(bool state)
     {
-        if (!state)
+        buildMode = state;
+        currentDirection = Direction.up;
+        if (!buildMode)
         {
-            toogleBuildMode = state;
-            currentDirection = Direction.up;
             currentBluePrint = null;
             placeableObject = null;
+            //TODO implement CallBack "OnBuildModeDeactive"
         }
         else
         {
-            toogleBuildMode = state;
-            currentDirection = Direction.up;
+            currentBluePrint = InstantiateBluePrint(Vector3.zero, placeableObject.GetDirectionRotation(currentDirection));
+            //TODO implement CallBack "OnBuildModeActive"
         }
-
-        //TODO implement some UI to visualize that are u in Build mode;
     }
 
-    private void EvalPosition(Vector3 worldPos)
+    private void SetErrorVisual(bool error)
     {
-        gm.grid.GetGridPositionFromWorldPos(gm.grid.GetMouseWorldPosition(Input.mousePosition), out int x, out int z);
-        List<Coordinate> coordinates = placeableObject.GetNeededCoordinates(x, z, currentDirection);
-        if (!CheckBuildPosition(coordinates))
-        {
-            currentBluePrint.GetComponent<PlaceableObjectHandler>().ToogleErrorVisual(true);
-        }
-        else
-        {
-            currentBluePrint.GetComponent<PlaceableObjectHandler>().ToogleErrorVisual(false);
-        }
+        currentBluePrint.GetComponent<PlaceableObjectHandler>().ToogleErrorVisual(error);
     }
 
     private bool CheckBuildPosition(int x, int y)
@@ -200,12 +196,17 @@ public class BuildingHandler : MonoBehaviour
         return CheckBuildPosition(coordinates);
     }
 
+    /// <summary>
+    /// Returns Ture if you can build
+    /// </summary>
+    /// <param name="coordinates"></param>
+    /// <returns></returns>
     private bool CheckBuildPosition(List<Coordinate> coordinates)
     {
         bool canBuild = true;
         foreach (Coordinate coord in coordinates)
         {
-            if (gm.grid.ValidateCoords(coord.x, coord.y))
+            if (gm.grid.ValidateCoords(coord))
             {
                 if (!gm.grid.gridFields[coord.x, coord.y].CanBuild())
                 {

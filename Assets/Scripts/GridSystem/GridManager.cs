@@ -7,7 +7,7 @@ public class GridManager : MonoBehaviour
     public static GridManager _instance;
     [SerializeField] private int width, height, cellSize;
     public GridXZ<GridObjectXZ> grid { get; protected set; }
-    [SerializeField] private List<PlaceableObject> placeableObjects;
+    [SerializeField] private List<PlaceableObjectSO> placeableObjects;
 
     void Awake()
     {
@@ -25,15 +25,15 @@ public class GridManager : MonoBehaviour
 
     }
 
-    public List<PlaceableObject> GetPlaceableObjects()
+    public List<PlaceableObjectSO> GetPlaceableObjects()
     {
         return placeableObjects;
     }
 
     private void LoadPlacableObjects()
     {
-        PlaceableObject[] pOs = Resources.LoadAll<PlaceableObject>("ScriptableObjects/PlaceableObjects");
-        foreach (PlaceableObject pO in pOs)
+        PlaceableObjectSO[] pOs = Resources.LoadAll<PlaceableObjectSO>("ScriptableObjects/PlaceableObjects");
+        foreach (PlaceableObjectSO pO in pOs)
         {
             placeableObjects.Add(pO);
         }

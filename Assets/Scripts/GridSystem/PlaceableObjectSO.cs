@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [CreateAssetMenu(menuName = "ScriptableObjects/PlaceableObject")]
-public class PlaceableObject : ScriptableObject
+public class PlaceableObjectSO : ScriptableObject
 {
     public new string name;
     public GameObject prefab;
-    public int width, height;
+    public int width;
+    public int height;
     public Sprite itemPicture;
+    public bool isDragable;
 
     /// <summary>
     /// Returns List of Coordinates which needed to build the object

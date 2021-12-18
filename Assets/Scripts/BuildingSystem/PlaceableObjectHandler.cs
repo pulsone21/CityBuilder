@@ -5,10 +5,9 @@ using UnityEngine;
 public class PlaceableObjectHandler : MonoBehaviour
 {
     public List<Coordinate> myCoordinates;
-    [SerializeField] private MeshRenderer[] myMRs;
-    [SerializeField] private bool isPreview;
-    [SerializeField] private List<Material> baseMaterials = new List<Material>();
-
+    private MeshRenderer[] myMRs;
+    private bool isPreview;
+    private List<Material> baseMaterials = new List<Material>();
 
     private void OnEnable()
     {
@@ -81,6 +80,11 @@ public class PlaceableObjectHandler : MonoBehaviour
             MakeTransparent(false, mR, i);
             i++;
         }
+    }
+
+    public void OnBuild()
+    {
+        //TODO Implement Audio and Build Animation
     }
 
     private void OnDestroy()

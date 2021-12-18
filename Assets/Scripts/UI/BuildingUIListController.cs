@@ -4,28 +4,38 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
+[RequireComponent(typeof(HorizontalLayoutGroup))]
 public class BuildingUIListController : MonoBehaviour
 {
     private GridManager gridManager;
     private BuildingHandler buildingHandler;
     [SerializeField] private GameObject ButtonPrefab;
-    [SerializeField] private List<PlaceableObject> placeableObjects;
+    [SerializeField] private List<PlaceableObjectSO> placeableObjects;
+    private float btnWidth;
+    private float btnSpacing;
+    private float btnWidthPadding;
 
     private void Awake()
     {
-        buildingHandler = BuildingHandler._instance;
-        gridManager = GridManager._instance;
+        btnWidth = ButtonPrefab.GetComponent<RectTransform>().sizeDelta.x;
+        btnSpacing = this.GetComponent<HorizontalLayoutGroup>().spacing;
+        btnWidthPadding = this.GetComponent<HorizontalLayoutGroup>().padding.left + this.GetComponent<HorizontalLayoutGroup>().padding.right;
     }
 
     private void Start()
     {
-        foreach (PlaceableObject pO in gridManager.GetPlaceableObjects())
+        buildingHandler = BuildingHandler._instance;
+        gridManager = GridManager._instance;
+        placeableObjects = gridManager.GetPlaceableObjects();
+        foreach (PlaceableObjectSO pO in placeableObjects)
         {
             InstantiateButton(pO);
         }
+        float currentHeight = this.GetComponent<RectTransform>().sizeDelta.y;
+        this.GetComponent<RectTransform>().sizeDelta = new Vector2(placeableObjects.Count * btnWidth + btnSpacing + btnWidthPadding, currentHeight);
     }
 
-    private void InstantiateButton(PlaceableObject pO)
+    private void InstantiateButton(PlaceableObjectSO pO)
     {
         GameObject newButton = Instantiate(ButtonPrefab, this.transform);
         newButton.transform.SetParent(this.transform);

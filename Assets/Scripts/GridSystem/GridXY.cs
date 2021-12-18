@@ -19,6 +19,7 @@ public class GridXY<TGridObject>
         this.cellSize = cellSize;
 
         this.rayCastPlane = new Plane(originPosition, GetWorldPositionFromGridCoords(0, height), GetWorldPositionFromGridCoords(width, height));
+
         gridFields = new TGridObject[width, height];
         debugTextMeshes = new TextMeshPro[width, height];
 
@@ -72,15 +73,17 @@ public class GridXY<TGridObject>
 
     public Vector3 GetWorldPositionFromGridCoords(int x, int y)
     {
-        return new Vector3(x, y) * cellSize + originPosition;
+        if (ValidateCoords(x, y)) return new Vector3(x, y) * cellSize + originPosition;
+        return Vector3.zero;
     }
 
-    public void GetGridPositionFromWorldPos(Vector3 worldPosition, out int x, out int y)
+    public Coordinate GetGridCoordinateFromWorldPos(Vector3 worldPosition)
     {
-        x = Mathf.FloorToInt((worldPosition - originPosition).x / cellSize);
-        y = Mathf.FloorToInt((worldPosition - originPosition).y / cellSize);
+        int x = Mathf.FloorToInt((worldPosition - originPosition).x / cellSize);
+        int y = Mathf.FloorToInt((worldPosition - originPosition).y / cellSize);
+        if (ValidateCoords(x, y)) return new Coordinate(x, y);
+        return null;
     }
-
 
     public void ToogleDebug(bool debugMode)
     {
